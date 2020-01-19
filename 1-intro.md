@@ -2,7 +2,27 @@
 
 This document provides you with an introduction to Kubernetes, it will introduce you to the components, explain how they fit together, introduce you to many of the core resource concepts and then provide you with a tutorial you can follow through yourself to get a grasp on theses concepts.
 
-Kubernetes, often abbreviated as K8S, is an orchestration service, designed by Google, for managing distributed systems. Although you can run it on bare metal, the preferred way is using one of the various cloud providers; Kubernetes will take care of provisioning hardware, allowing you to use all available hardware resources as if it were one giant computer. By specifying the resources required by your application Kubernetes will take care of scheduling them to run on hardware with the appropriate resources available.
+Kubernetes, often abbreviated as K8S, is an orchestration service, designed by Google, for managing distributed systems. It comes from the Greek word for "helmsman" or "captain". Although you can run it on bare metal, the preferred way is using one of the various cloud providers; Kubernetes will take care of provisioning hardware, allowing you to use all available hardware resources as if it were one giant computer. By specifying the resources required by your application Kubernetes will take care of scheduling them to run on hardware with the appropriate resources available.
+
+## Table of Contents
+
+- [Why use Kubernetes](#why-use-kubernetes)
+- [Components of Kubernetes](#components-of-kubernetes)
+    - [Control Plane](#control-plane-or-master-node)
+        - [etcd](#etcd)
+        - [API Server](#api-server)
+        - [Scheduler](#scheduler)
+        - [Kube-Controller Manager](#kube-controller-manager)
+        - [Cloud-Controller Manager](#cloud-controller-manager)
+    - [Worker Node](#worker-node)
+        - [Kubelet](#kubelet)
+        - [Kube-proxy](#kube-proxy)
+- [Addons](#addons)
+    - [Container Network Interface](#container-network-interface)
+    - [DNS](#dns)
+    - [Ingress Controller](#ingress-controller)
+    - [Logging](#logging)
+    - [Monitoring](#monitoring)
 
 ## Why use Kubernetes
 
@@ -86,13 +106,13 @@ The *Kubelet* is the part of the worker which is responsible for ensuring that *
 
 Despite the name, *Kube-proxy* does not normally act as an actual proxy. It is responsible for ensuring traffic is routed correctly to *Pods*, to do this it makes heavy use of *iptables*; it updates the rules when new *Pods* are created so that traffic is routed correctly as well as deals with DNS for pointing *Services* to *Endpoints*, either locally or on another *Node* and manages port allocation for *NodePorts*. If your operating system doesn't have a packet filtering layer such as iptables then *Kube-proxy* will act as a proxy and forward the requests itself, although this is not the recommended mode of operation.
 
-### Addons
+## Addons
 
 Although that is everything which is needed to run a cluster, there are a few optional addons which are typically installed, although none of these are strictly required for the cluster to function the first 2 at least are recommended if you want a functioning *Pod* network. They all run as *Pods* on the cluster.
 
 A brief overview is provided below, some of these will be discussed in more detail in a later section.
 
-#### Container Network Interface
+### Container Network Interface
 
 You are expected to provide a CNI so that *Pods* are addressable; without a CNI, none of the network functionality works so Kubernetes would only be useful for running *Jobs* and even then not if the *Pod* needed any network access. Kubernetes does not come with a CNI included as there are many available implementations available such as [WeaveNet](https://www.weave.works/oss/net/), [Flannel](https://github.com/coreos/flannel) and [Calico](https://github.com/projectcalico/cni-plugin) due to the [CNI being an open standard](https://github.com/containernetworking/cni).
 
@@ -100,11 +120,11 @@ It is typically installed as a *DaemonSet* (more on those later) on the cluster 
 
 Commonly, Flannel and Calico are used together, this configuration is known as [Canal](https://docs.projectcalico.org/latest/getting-started/kubernetes/installation/flannel); in this configuration, Flannel is responsible for the overlay network while Calico is responsible for enforcing the *NetworkPolicy* (like *Ingress*, it is another resource which Kubernetes defines but does not provide an implementation of out of the box).
 
-#### DNS
+### DNS
 
 The cluster should have a DNS server installed, this will allow *Services* and *Pods* to be addressable by their name. This is independent from the system DNS, most clusters use [CoreDNS](https://kubernetes.io/docs/tasks/administer-cluster/dns-custom-nameservers/#coredns).
 
-#### Ingress Controller
+### Ingress Controller
 
 We previously mentioned that Kubernetes does not include an implementation of the *Ingress Controller*, there are many options available, you can even install multiple implementations. Whether you install one, and which you install, will depend upon your requirements.
 Popular implementations include [Traefik](https://containo.us/traefik/) and [NGINX Ingress](https://github.com/kubernetes/ingress-nginx).
@@ -113,10 +133,10 @@ Popular implementations include [Traefik](https://containo.us/traefik/) and [NGI
 
 [Kubernetes Dashboard](https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/) is a web application which allows users to manage the cluster from their browser.
 
-#### Logging
+### Logging
 
 The cluster will probably need a method of aggregating and persisting all the logs in a central location as logs do not persist when a container crashes or a *Pod* is destroyed. There are several available solutions such as [fluentd](https://www.fluentd.org) with [ELK stack](https://www.elastic.co/what-is/elk-stack), or [Grafana Loki](https://github.com/grafana/loki).
 
-#### Monitoring
+### Monitoring
 
 You will also probably want to monitor the cluster to be able to detect performance issues and react to them. [Metrics Server](https://github.com/kubernetes-sigs/metrics-server) is used to monitor the resource usage and can be used by the *HorizontalPodAutoscalers*. Alongside the Metrics Server, you will typically install [Prometheus](https://prometheus.io) as a full metrics system, many applications natively expose metrics to Prometheus and there are many "exporters" available to adapt different metrics data sources to the Prometheus format.
